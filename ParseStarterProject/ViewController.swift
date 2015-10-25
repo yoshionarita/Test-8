@@ -27,36 +27,62 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         self.messageTableView.dataSource = self
         self.messageTextField.delegate = self
 
+        let tapGesture: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "tableViewTapped")
+        self.messageTableView.addGestureRecognizer(tapGesture)
+
+        self.sendButton.enabled = false
+
         self.messagesArray.append("Arizona")
         self.messagesArray.append("Brazil")
         self.messagesArray.append("Carter's")
         self.messagesArray.append("Denver")
-
-/*
-        let testObject:PFObject = PFObject(className: "TestObject")
-        testObject["name"] = "kako"
-        testObject.saveInBackgroundWithBlock(nil)
-*/
     }
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
     @IBAction func sendButtonTapped(sender: UIButton) {
+        self.messageTextField.endEditing(true)
 
+        self.sendButton.enabled = false
+        self.messageTextField.enabled = false
+
+        var newMessageObject:PFObject = PFObject(className: "Message")
+        newMessageObject["Text"] = self.messageTextField.text
+
+        newMessageObject.saveInBackgroundWithBlock {
+        (success: Bool, error: NSError?) -> Void in
+            if (success == true) {
+                NSLog("Message saved successfully.")
+            } else {
+                NSLog(error!.description)
+            }
+            self.sendButton.enabled = true
+            self.messageTextField.enabled = true
+            self.messageTextField.text = ""
+        }
+    }
+
+    func tableViewTapped() {
+        self.messageTextField.endEditing(true)
     }
 
     func textFieldDidBeginEditing(textField: UITextField) {
         self.view.layoutIfNeeded()
         UIView.animateWithDuration(0.5, animations: {
-            self.dockViewHeightConstraint.constant = 310
+            self.dockViewHeightConstraint.constant = 285
             self.view.layoutIfNeeded()
             }, completion: nil)
     }
 
     func textFieldDidEndEditing(textField: UITextField) {
         self.view.layoutIfNeeded()
+
+        self.messageTextField.enabled = false
+        self.sendButton.enabled = true
+
         UIView.animateWithDuration(0.5, animations: {
             self.dockViewHeightConstraint.constant = 60
             self.view.layoutIfNeeded()
